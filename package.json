@@ -1,0 +1,22 @@
+{
+  "name": "vite-plugin-shader",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc"
+  },
+  "author": "TOMIKAWA Sotaro",
+  "dependencies": {
+    "shader-minifier-wasm": "https://pkg.pr.new/ssssota/shader-minifier-wasm@400cce1",
+    "vite-plugin-unknown": "^0.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  },
+  "peerDependencies": {
+    "vite": ">=4.0.0"
+  },
+  "license": "MIT",
+  "packageManager": "pnpm@10.10.0+sha512.d615db246fe70f25dcfea6d8d73dee782ce23e2245e3c4f6f888249fb568149318637dca73c2c5c8ef2a4ca0d5657fb9567188bfab47f566d1ee6ce987815c39"
+}
