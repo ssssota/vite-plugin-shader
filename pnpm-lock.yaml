@@ -12,8 +12,8 @@ importers:
         specifier: ^0.1.1
         version: 0.1.1
       vite-plugin-unknown:
-        specifier: ^0.1.0
-        version: 0.1.0(vite@6.3.5)
+        specifier: ^0.1.1
+        version: 0.1.1(vite@6.3.5)
     devDependencies:
       typescript:
         specifier: ^5.8.3
@@ -332,8 +332,8 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
-  vite-plugin-unknown@0.1.0:
-    resolution: {integrity: sha512-50KS6Ad2mByYjirBtQMx1b5zXHxT9fIbZAnp7lWy7+E258mTYh+1nC72b8A+Yq55byfqHFFswb7Oh5vxD2HvSw==}
+  vite-plugin-unknown@0.1.1:
+    resolution: {integrity: sha512-oHNkMTduxE2lbkyr6D5Py5CatEhHN0FGpzHG42jFmBqKto73bV0WV7H+u0/MF4PlIJYvAlpL8JNBqV/amfGCjw==}
     peerDependencies:
       vite: '>=4.0.0'
 
@@ -600,7 +600,7 @@ snapshots:
 
   typescript@5.8.3: {}
 
-  vite-plugin-unknown@0.1.0(vite@6.3.5):
+  vite-plugin-unknown@0.1.1(vite@6.3.5):
     dependencies:
       vite: 6.3.5
 

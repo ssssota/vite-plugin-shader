@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "shader-minifier-wasm": "^0.1.1",
-    "vite-plugin-unknown": "^0.1.0"
+    "vite-plugin-unknown": "^0.1.1"
   },
   "devDependencies": {
     "typescript": "^5.8.3",
