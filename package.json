@@ -7,7 +7,7 @@
   },
   "author": "TOMIKAWA Sotaro",
   "dependencies": {
-    "shader-minifier-wasm": "https://pkg.pr.new/ssssota/shader-minifier-wasm@400cce1",
+    "shader-minifier-wasm": "^0.1.1",
     "vite-plugin-unknown": "^0.1.0"
   },
   "devDependencies": {
