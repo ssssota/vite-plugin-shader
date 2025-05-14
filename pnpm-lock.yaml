@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       shader-minifier-wasm:
-        specifier: ^0.1.1
-        version: 0.1.1
+        specifier: ^0.1.2
+        version: 0.1.2
       vite-plugin-unknown:
         specifier: ^0.1.2
         version: 0.1.2(vite@6.3.5)
@@ -316,8 +316,8 @@ packages:
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
 
-  shader-minifier-wasm@0.1.1:
-    resolution: {integrity: sha512-bmYlOWEzSAHttXIqiI0KgC3aqp53ByiL7QLqqTeXnSCKW9An8pCCFZqltA2eUKA8vmhgFLT+pW4ZWrjfS0CO0g==}
+  shader-minifier-wasm@0.1.2:
+    resolution: {integrity: sha512-3bKjQIe0OXQ6wJ5Mb49oX+D3gO/IUHYDjJcr6DFEaJLxtCAn/vJT2AfI3uDvvuHPSXTqxNRAf+cfYnhp2r9NEg==}
 
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
@@ -589,7 +589,7 @@ snapshots:
       '@rollup/rollup-win32-x64-msvc': 4.40.2
       fsevents: 2.3.3
 
-  shader-minifier-wasm@0.1.1: {}
+  shader-minifier-wasm@0.1.2: {}
 
   source-map-js@1.2.1: {}
 

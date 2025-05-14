@@ -21,7 +21,7 @@
     "url": "git+https://github.com/ssssota/vite-plugin-shader.git"
   },
   "dependencies": {
-    "shader-minifier-wasm": "^0.1.1",
+    "shader-minifier-wasm": "^0.1.2",
     "vite-plugin-unknown": "^0.1.2"
   },
   "devDependencies": {
