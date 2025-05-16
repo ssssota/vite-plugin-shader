@@ -1,0 +1,15 @@
+{
+	"editor.defaultFormatter": "biomejs.biome",
+	"editor.formatOnSave": true,
+	"editor.codeActionsOnSave": {
+		"source.fixAll.biome": "explicit",
+		"source.organizeImports.biome": "explicit"
+	},
+
+	"explorer.fileNesting.enabled": true,
+	"explorer.fileNesting.patterns": {
+		"*.glsl": "*.glsl.d.ts",
+		"*.vert": "*.vert.d.ts",
+		"*.frag": "*.frag.d.ts"
+	}
+}

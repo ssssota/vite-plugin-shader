@@ -1,13 +1,14 @@
 {
-  "compilerOptions": {
-    "target": "esnext",
-    "module": "nodenext",
-    "verbatimModuleSyntax": true,
-    "isolatedDeclarations": true,
-    "strict": true,
-    "skipLibCheck": true,
-    "declaration": true,
-    "rootDir": "src",
-    "outDir": "dist"
-  }
+	"compilerOptions": {
+		"target": "esnext",
+		"module": "nodenext",
+		"verbatimModuleSyntax": true,
+		"isolatedDeclarations": true,
+		"strict": true,
+		"skipLibCheck": true,
+		"declaration": true,
+		"rootDir": "src",
+		"outDir": "dist"
+	},
+	"exclude": ["./e2e/**", "./dist/**"]
 }

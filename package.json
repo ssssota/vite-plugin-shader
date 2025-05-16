@@ -1,36 +1,37 @@
 {
-  "name": "vite-plugin-shader",
-  "version": "0.1.4",
-  "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    }
-  },
-  "scripts": {
-    "build": "tsc",
-    "prepare": "pnpm build"
-  },
-  "files": [
-    "dist"
-  ],
-  "author": "TOMIKAWA Sotaro",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ssssota/vite-plugin-shader.git"
-  },
-  "dependencies": {
-    "shader-minifier-wasm": "^0.1.2",
-    "vite-plugin-unknown": "^0.1.2"
-  },
-  "devDependencies": {
-    "typescript": "^5.8.3",
-    "vite": "^6.3.5"
-  },
-  "peerDependencies": {
-    "vite": ">=4.0.0"
-  },
-  "license": "MIT",
-  "packageManager": "pnpm@10.10.0+sha512.d615db246fe70f25dcfea6d8d73dee782ce23e2245e3c4f6f888249fb568149318637dca73c2c5c8ef2a4ca0d5657fb9567188bfab47f566d1ee6ce987815c39"
+	"name": "vite-plugin-shader",
+	"version": "0.1.4",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc",
+		"fmt": "biome check --fix",
+		"lint": "biome check",
+		"prepare": "pnpm build"
+	},
+	"files": ["dist"],
+	"author": "TOMIKAWA Sotaro",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ssssota/vite-plugin-shader.git"
+	},
+	"dependencies": {
+		"shader-minifier-wasm": "^0.2.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.4",
+		"@types/node": "^22.15.18",
+		"typescript": "catalog:",
+		"vite": "catalog:"
+	},
+	"peerDependencies": {
+		"vite": ">=5.0.0"
+	},
+	"license": "MIT",
+	"packageManager": "pnpm@10.10.0+sha512.d615db246fe70f25dcfea6d8d73dee782ce23e2245e3c4f6f888249fb568149318637dca73c2c5c8ef2a4ca0d5657fb9567188bfab47f566d1ee6ce987815c39"
 }
