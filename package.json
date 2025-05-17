@@ -14,9 +14,7 @@
 		"lint": "biome check",
 		"prepare": "pnpm build"
 	},
-	"files": [
-		"dist"
-	],
+	"files": ["dist"],
 	"author": "TOMIKAWA Sotaro",
 	"repository": {
 		"type": "git",
