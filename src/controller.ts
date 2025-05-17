@@ -1,69 +1,117 @@
+import { readFile, rm, writeFile } from "node:fs/promises";
 import type { TransformResult, createTransformer } from "./transform.js";
-export const virtualShaderMappingsId = "virtual:shader-mappings";
+type FS = {
+	writeFile: (path: string, data: string) => Promise<void>;
+	readFile: (path: string) => Promise<string | null>;
+	rm: (path: string) => Promise<void>;
+};
+const defaultFS: FS = {
+	writeFile,
+	readFile: (path: string) => readFile(path, "utf8").catch(() => null),
+	rm,
+};
 
 const template = `
 type ShaderType = WebGLRenderingContextBase["VERTEX_SHADER"] | WebGLRenderingContextBase["FRAGMENT_SHADER"];
 export const createShaderWithSource = (gl: WebGLRenderingContextBase, type: ShaderType): WebGLShader | null => {
   const shader = gl.createShader(type);
   if (!shader) return null;
-  gl.shaderSource(shader, glsl);
+  gl.shaderSource(shader, source);
 	return shader;
 }
-export const getAttribLocation = (gl: WebGLRenderingContextBase, program: WebGLProgram, name: Variables): GLint => {
-  return gl.getAttribLocation(program, mappings[name]);
-}
-export const getUniformLocation = (gl: WebGLRenderingContextBase, program: WebGLProgram, name: Variables): WebGLUniformLocation | null => {
-  return gl.getUniformLocation(program, mappings[name]);
-}
+type GetAttribLocation = (gl: WebGLRenderingContextBase, program: WebGLProgram, name: Variables) => GLint;
+export const getAttribLocation: GetAttribLocation = _getAttribLocation;
+type GetUniformLocation = (gl: WebGLRenderingContextBase, program: WebGLProgram, name: Variables) => WebGLUniformLocation | null;
+export const getUniformLocation: GetUniformLocation = _getUniformLocation;
+`;
+const virtualModuleTemplate = `
+export const _getAttribLocation = (gl, program, name) => gl.getAttribLocation(program, mappings[name]);
+export const _getUniformLocation = (gl, program, name) => gl.getUniformLocation(program, mappings[name]);
 `;
 
 type ControllerOptions = {
 	transform: ReturnType<typeof createTransformer>;
-	onMappingsChange?: () => void;
+	onMappingsChange?: (this: ShadersController) => void;
+	virtualModuleId?: string;
+	fs?: FS;
 };
 export class ShadersController {
-	#cache: Record<string, string> = Object.create(null);
-	#resCache: TransformResult = { shaders: {}, mappings: {} };
+	virtualModuleId: string;
+	#shaderCache: Record<string, string> = Object.create(null);
+	#dtsCache: Record<string, string> = Object.create(null);
+	#transformResult: TransformResult = { shaders: {}, mappings: {} };
 	#transform: ReturnType<typeof createTransformer>;
-	#onMappingsChange?: () => void;
+	#onMappingsChange?: (this: ShadersController) => void;
+	#fs: FS;
+	get resolvedVirtualModuleId() {
+		return `\0${this.virtualModuleId}`;
+	}
 
 	constructor(options: ControllerOptions) {
 		this.#transform = options.transform;
 		this.#onMappingsChange = options.onMappingsChange;
+		this.virtualModuleId =
+			options.virtualModuleId ?? "virtual:vite-plugin-shader/runtime";
+		this.#fs = options.fs ?? defaultFS;
 	}
 
-	async update(id: string, code: string): Promise<void> {
-		this.#cache[id] = code;
+	async update(id: string): Promise<string | null> {
+		const code = await this.#fs.readFile(id);
+		if (code === null) return null;
+		this.#shaderCache[id] = code;
 		await this.#emit();
+		return ShadersController.#dtsPath(id);
 	}
 	async delete(id: string): Promise<void> {
-		delete this.#cache[id];
+		delete this.#shaderCache[id];
 		await this.#emit();
 	}
 	getDts(id: string): string | null {
-		const res = this.#resCache;
+		const res = this.#transformResult;
 		if (id in res.shaders) {
 			return [
-				`import mappings from "${virtualShaderMappingsId}";`,
+				`import { mappings, _getAttribLocation, _getUniformLocation } from ${stringify(this.virtualModuleId)};`,
 				`type Variables = ${Object.keys(res.mappings)
 					.map(stringify)
 					.join(" | ")};`,
-				`export const glsl = ${stringify(res.shaders[id])} as const;`,
+				`export const source = ${stringify(res.shaders[id])} as const;`,
 				template,
 			].join("\n");
 		}
 		return null;
 	}
-	getMappingsJs(): string {
-		return `export default ${stringify(this.#resCache.mappings)};`;
+	getVirtualModule(): string {
+		return [
+			`export const mappings = ${stringify(this.#transformResult.mappings)};`,
+			virtualModuleTemplate,
+		].join("\n");
 	}
 
 	async #emit() {
-		const prevMappings = this.#resCache.mappings;
-		this.#resCache = await this.#transform(this.#cache);
-		const newMappings = this.#resCache.mappings;
+		const prevMappings = this.#transformResult.mappings;
+		this.#transformResult = await this.#transform(this.#shaderCache);
+		const newMappings = this.#transformResult.mappings;
 		if (!hasDiff(prevMappings, newMappings)) return;
-		this.#onMappingsChange?.();
+		this.#onMappingsChange?.call(this);
+
+		await Promise.allSettled(
+			Object.entries(this.#shaderCache).map(async ([id, code]) => {
+				const dtsPath = ShadersController.#dtsPath(id);
+				const dtsCode = this.getDts(id);
+				if (dtsCode === null) {
+					await this.#fs.rm(dtsPath);
+					delete this.#dtsCache[id];
+					return;
+				}
+				if (code === dtsCode) return;
+				await this.#fs.writeFile(dtsPath, dtsCode);
+				this.#dtsCache[id] = dtsCode;
+			}),
+		);
+	}
+
+	static #dtsPath(id: string): string {
+		return `${id}.d.ts`;
 	}
 }
 

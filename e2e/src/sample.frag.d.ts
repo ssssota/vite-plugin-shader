@@ -1,17 +1,15 @@
-import mappings from "virtual:shader-mappings";
+import { mappings, _getAttribLocation, _getUniformLocation } from "virtual:vite-plugin-shader/runtime";
 type Variables = "a_position" | "outColor";
-export const glsl = "#version 300 es\nprecision highp float;out vec4 e;void main(){e=vec4(1,0,.5,1);}" as const;
+export const source = "#version 300 es\nprecision highp float;out vec4 e;void main(){e=vec4(1,0,.5,1);}" as const;
 
 type ShaderType = WebGLRenderingContextBase["VERTEX_SHADER"] | WebGLRenderingContextBase["FRAGMENT_SHADER"];
 export const createShaderWithSource = (gl: WebGLRenderingContextBase, type: ShaderType): WebGLShader | null => {
   const shader = gl.createShader(type);
   if (!shader) return null;
-  gl.shaderSource(shader, glsl);
+  gl.shaderSource(shader, source);
 	return shader;
 }
-export const getAttribLocation = (gl: WebGLRenderingContextBase, program: WebGLProgram, name: Variables): GLint => {
-  return gl.getAttribLocation(program, mappings[name]);
-}
-export const getUniformLocation = (gl: WebGLRenderingContextBase, program: WebGLProgram, name: Variables): WebGLUniformLocation | null => {
-  return gl.getUniformLocation(program, mappings[name]);
-}
+type GetAttribLocation = (gl: WebGLRenderingContextBase, program: WebGLProgram, name: Variables) => GLint;
+export const getAttribLocation: GetAttribLocation = _getAttribLocation;
+type GetUniformLocation = (gl: WebGLRenderingContextBase, program: WebGLProgram, name: Variables) => WebGLUniformLocation | null;
+export const getUniformLocation: GetUniformLocation = _getUniformLocation;
