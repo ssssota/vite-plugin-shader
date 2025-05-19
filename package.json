@@ -1,6 +1,6 @@
 {
 	"name": "vite-plugin-shader",
-	"version": "0.2.1",
+	"version": "0.3.0",
 	"type": "module",
 	"exports": {
 		".": {
@@ -15,7 +15,9 @@
 		"test": "vitest",
 		"prepare": "pnpm build"
 	},
-	"files": ["dist"],
+	"files": [
+		"dist"
+	],
 	"author": "TOMIKAWA Sotaro",
 	"repository": {
 		"type": "git",
