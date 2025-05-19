@@ -1,9 +1,11 @@
 import { readFile, rm, writeFile } from "node:fs/promises";
-import type { TransformResult, createTransformer } from "./transform.js";
+import type { MinifyResult, createMinifier } from "./minify.js";
+
+type PromiseOr<T> = T | Promise<T>;
 type FS = {
-	writeFile: (path: string, data: string) => Promise<void>;
-	readFile: (path: string) => Promise<string | null>;
-	rm: (path: string) => Promise<void>;
+	writeFile: (path: string, data: string) => PromiseOr<void>;
+	readFile: (path: string) => PromiseOr<string | null>;
+	rm: (path: string) => PromiseOr<void>;
 };
 const defaultFS: FS = {
 	writeFile,
@@ -11,47 +13,27 @@ const defaultFS: FS = {
 	rm,
 };
 
-const template = `
-type ShaderType = WebGLRenderingContextBase["VERTEX_SHADER"] | WebGLRenderingContextBase["FRAGMENT_SHADER"];
-export const createShaderWithSource = (gl: WebGLRenderingContextBase, type: ShaderType): WebGLShader | null => {
-  const shader = gl.createShader(type);
-  if (!shader) return null;
-  gl.shaderSource(shader, source);
-	return shader;
-}
-type GetAttribLocation = (gl: WebGLRenderingContextBase, program: WebGLProgram, name: Variables) => GLint;
-export const getAttribLocation: GetAttribLocation = _getAttribLocation;
-type GetUniformLocation = (gl: WebGLRenderingContextBase, program: WebGLProgram, name: Variables) => WebGLUniformLocation | null;
-export const getUniformLocation: GetUniformLocation = _getUniformLocation;
-`;
-const virtualModuleTemplate = `
-export const _getAttribLocation = (gl, program, name) => gl.getAttribLocation(program, mappings[name]);
-export const _getUniformLocation = (gl, program, name) => gl.getUniformLocation(program, mappings[name]);
-`;
-
 type ControllerOptions = {
-	transform: ReturnType<typeof createTransformer>;
+	minify: ReturnType<typeof createMinifier>;
 	onMappingsChange?: (this: ShadersController) => void;
 	virtualModuleId?: string;
 	fs?: FS;
 };
 export class ShadersController {
-	virtualModuleId: string;
+	static readonly runtimeModuleId = "vite-plugin-shader/runtime";
+	static readonly resolvedRuntimeModuleId: string =
+		`\0${ShadersController.runtimeModuleId}`;
+
 	#shaderCache: Record<string, string> = Object.create(null);
 	#dtsCache: Record<string, string> = Object.create(null);
-	#transformResult: TransformResult = { shaders: {}, mappings: {} };
-	#transform: ReturnType<typeof createTransformer>;
+	#minifyResult: MinifyResult = { shaders: {}, mappings: {} };
+	#minify: ReturnType<typeof createMinifier>;
 	#onMappingsChange?: (this: ShadersController) => void;
 	#fs: FS;
-	get resolvedVirtualModuleId() {
-		return `\0${this.virtualModuleId}`;
-	}
 
 	constructor(options: ControllerOptions) {
-		this.#transform = options.transform;
+		this.#minify = options.minify;
 		this.#onMappingsChange = options.onMappingsChange;
-		this.virtualModuleId =
-			options.virtualModuleId ?? "virtual:vite-plugin-shader/runtime";
 		this.#fs = options.fs ?? defaultFS;
 	}
 
@@ -63,47 +45,46 @@ export class ShadersController {
 		return ShadersController.#dtsPath(id);
 	}
 	async delete(id: string): Promise<void> {
-		delete this.#shaderCache[id];
+		await this.#delete(id);
 		await this.#emit();
 	}
-	getDts(id: string): string | null {
-		const res = this.#transformResult;
+	async #delete(id: string) {
+		delete this.#shaderCache[id];
+		delete this.#dtsCache[id];
+		const dtsPath = ShadersController.#dtsPath(id);
+		await this.#fs.rm(dtsPath);
+	}
+
+	#getDts(id: string): string | null {
+		const res = this.#minifyResult;
 		if (id in res.shaders) {
 			return [
-				`import { mappings, _getAttribLocation, _getUniformLocation } from ${stringify(this.virtualModuleId)};`,
-				`type Variables = ${Object.keys(res.mappings)
-					.map(stringify)
-					.join(" | ")};`,
-				`export const source = ${stringify(res.shaders[id])} as const;`,
-				template,
+				`import { mappings } from ${stringify(ShadersController.runtimeModuleId)};`,
+				`export const shader = ${stringify(res.shaders[id])} as const;`,
+				`export const shaderVariables: ${stringify(res.mappings)} = mappings;\n`,
 			].join("\n");
 		}
 		return null;
 	}
 	getVirtualModule(): string {
-		return [
-			`export const mappings = ${stringify(this.#transformResult.mappings)};`,
-			virtualModuleTemplate,
-		].join("\n");
+		return `export const mappings = ${stringify(this.#minifyResult.mappings)};\n`;
 	}
 
 	async #emit() {
-		const prevMappings = this.#transformResult.mappings;
-		this.#transformResult = await this.#transform(this.#shaderCache);
-		const newMappings = this.#transformResult.mappings;
-		if (!hasDiff(prevMappings, newMappings)) return;
-		this.#onMappingsChange?.call(this);
+		const prevMappings = this.#minifyResult.mappings;
+		this.#minifyResult = await this.#minify(this.#shaderCache);
+		const newMappings = this.#minifyResult.mappings;
+		if (hasDiff(prevMappings, newMappings)) this.#onMappingsChange?.call(this);
 
 		await Promise.allSettled(
 			Object.entries(this.#shaderCache).map(async ([id, code]) => {
 				const dtsPath = ShadersController.#dtsPath(id);
-				const dtsCode = this.getDts(id);
+				const dtsCode = this.#getDts(id);
+				if (dtsCode === code) return;
 				if (dtsCode === null) {
-					await this.#fs.rm(dtsPath);
-					delete this.#dtsCache[id];
+					await this.#delete(id);
 					return;
 				}
-				if (code === dtsCode) return;
 				await this.#fs.writeFile(dtsPath, dtsCode);
 				this.#dtsCache[id] = dtsCode;
 			}),

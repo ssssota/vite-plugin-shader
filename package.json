@@ -9,9 +9,10 @@
 		}
 	},
 	"scripts": {
-		"build": "tsc",
+		"build": "tsdown --dts ./src/index.ts ./src/runtime.ts",
 		"fmt": "biome check --fix",
 		"lint": "biome check",
+		"test": "vitest",
 		"prepare": "pnpm build"
 	},
 	"files": ["dist"],
@@ -26,8 +27,10 @@
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",
 		"@types/node": "^22.15.18",
+		"tsdown": "^0.11.11",
 		"typescript": "catalog:",
-		"vite": "catalog:"
+		"vite": "catalog:",
+		"vitest": "^3.1.3"
 	},
 	"peerDependencies": {
 		"vite": ">=5.0.0"

@@ -10,5 +10,5 @@
 		"rootDir": "src",
 		"outDir": "dist"
 	},
-	"exclude": ["./e2e/**", "./dist/**"]
+	"exclude": ["./e2e/**", "./dist/**", "./**/*.test.ts"]
 }
